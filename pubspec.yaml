@@ -1,0 +1,71 @@
+name: agrivana
+description: "Agrivana - Ekosistem Pertanian Digital"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+    sdk: ^3.9.2
+
+dependencies:
+    flutter:
+        sdk: flutter
+    cupertino_icons: ^1.0.8
+    flutter_bloc: ^9.0.0
+    equatable: ^2.0.7
+    http: ^1.4.0
+    flutter_secure_storage: ^9.2.4
+    cached_network_image: ^3.4.1
+    shimmer: ^3.0.0
+    google_fonts: ^6.2.1
+    image_picker: ^1.1.2
+    url_launcher: ^6.3.1
+    carousel_slider: ^5.1.2
+    smooth_page_indicator: ^1.2.0+3
+    intl: ^0.20.2
+    cloudinary_public: ^0.23.1
+    shared_preferences: ^2.3.4
+    flutter_map: ^7.0.2
+    latlong2: ^0.9.1
+    geolocator: ^13.0.2
+    flutter_widget_from_html_core: ^0.15.2
+    share_plus: ^10.1.4
+    flutter_native_splash: ^2.4.7
+
+dev_dependencies:
+    flutter_test:
+        sdk: flutter
+    flutter_lints: ^5.0.0
+    flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+    android: "launcher_icon"
+    ios: true
+    image_path: "assets/icon/agrivana-icon-app.png"
+    min_sdk_android: 21
+
+flutter:
+    uses-material-design: true
+    assets:
+        - assets\images\splash_onboarding\splash.png
+        - assets\images\splash_onboarding\splashpage-bg.png
+        - assets\images\splash_onboarding\logo-splash-page.png
+        - assets\images\splash_onboarding\onboarding1.png
+        - assets\images\splash_onboarding\onboarding2.png
+        - assets\images\splash_onboarding\onboarding3.png
+        - assets\images\splash_onboarding\onboarding-btn.png
+        - assets\images\agrivana-logo.png
+        - assets\images\agrivana-white-logo.png
+        - assets\images\main_feature\logo-home.png
+        - assets\images\main_feature\logo-home.png
+        - assets\images\main_feature\banner-1.png
+        - assets\images\main_feature\banner-2.png
+        - assets\images\main_feature\banner-3.png
+        - assets\images\bank\bcava.png
+        - assets\images\bank\bniva.png
+        - assets\images\bank\briva.png
+        - assets\images\bank\dana.png
+        - assets\images\bank\gopay.png
+        - assets\images\bank\mandiriva.png
+        - assets\images\bank\ovo.png
+        - assets\images\bank\qris.png
+        - assets\images\bank\spay.png
