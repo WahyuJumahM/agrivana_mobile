@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'core/routes/app_routes.dart';
 import 'utils/dialogs.dart';
 import 'services/api_service.dart';
+import 'package:flutter_uxcam/flutter_uxcam.dart';
 
 // BLoCs
 import 'features/auth/bloc/auth_bloc.dart';
@@ -42,6 +43,15 @@ class _AgrivanaAppState extends State<AgrivanaApp> {
     _sessionSub = ApiService.onSessionExpired.stream.listen((_) {
       navigatorKey.currentState?.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
     });
+
+    // Initialize UXCam
+    FlutterUxcam.optIntoSchematicRecordings(); /* Confirm that you have user permission for screen recording */
+    FlutterUxConfig config = FlutterUxConfig(
+      userAppKey: "rk4p8xi44xarjnh-us",
+      enableAutomaticScreenNameTagging: false,
+      enableIntegrationLogging: true
+    );
+    FlutterUxcam.startWithConfiguration(config);
   }
 
   @override

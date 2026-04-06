@@ -1081,7 +1081,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> with SingleTicker
                 ),
                 const SizedBox(height: 12),
                 // Issues chips
-                const Text('Masalah (opsional):', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                const Text('Masalah (opsional):', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,

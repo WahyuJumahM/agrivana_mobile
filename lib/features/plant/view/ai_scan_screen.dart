@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../services/cloudinary_service.dart';
 import '../../../services/api_config.dart';
 import '../model/plant_model.dart';
 import '../service/plant_service.dart';
@@ -12,7 +12,9 @@ class AiScanScreen extends StatefulWidget {
   State<AiScanScreen> createState() => _AiScanScreenState();
 }
 
-class _AiScanScreenState extends State<AiScanScreen> {
+class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _scannerController;
+  late Animation<double> _scannerAnimation;
   final ImagePicker _picker = ImagePicker();
 
   List<ScanAvailablePlantModel> _availablePlants = [];
@@ -22,15 +24,116 @@ class _AiScanScreenState extends State<AiScanScreen> {
   bool _scanning = false;
   Map<String, dynamic>? _result;
 
+  static const List<Map<String, dynamic>> _scannerPlants = [
+    {'id': 'hort_tomat', 'name': 'Tomat', 'icon': '🍅', 'description': 'Sayuran buah populer'},
+    {'id': 'hort_bayam', 'name': 'Bayam', 'icon': '🥬', 'description': 'Sayuran hijau bergizi'},
+    {'id': 'hort_cabai', 'name': 'Cabai', 'icon': '🌶️', 'description': 'Bumbu dapur utama'},
+    {'id': 'hort_terong', 'name': 'Terong', 'icon': '🍆', 'description': 'Sayuran serbaguna'},
+    {'id': 'hort_timun', 'name': 'Timun', 'icon': '🥒', 'description': 'Sayuran segar'},
+    {'id': 'hort_selada', 'name': 'Selada', 'icon': '🥬', 'description': 'Sayuran daun hijau'},
+    {'id': 'hort_kangkung', 'name': 'Kangkung', 'icon': '🌿', 'description': 'Sayuran air populer'},
+    {'id': 'hort_sawi', 'name': 'Sawi', 'icon': '🥬', 'description': 'Sayuran hijau serbaguna'},
+    {'id': 'hort_brokoli', 'name': 'Brokoli', 'icon': '🥦', 'description': 'Sayuran tinggi nutrisi'},
+    {'id': 'hort_wortel', 'name': 'Wortel', 'icon': '🥕', 'description': 'Sayuran umbi kaya vitamin A'},
+    {'id': 'hort_bawang_merah', 'name': 'Bawang Merah', 'icon': '🧅', 'description': 'Bumbu dapur esensial'},
+    {'id': 'hort_bawang_putih', 'name': 'Bawang Putih', 'icon': '🧄', 'description': 'Bumbu aromatik'},
+    {'id': 'hort_paprika', 'name': 'Paprika', 'icon': '🫑', 'description': 'Sayuran buah berwarna'},
+    {'id': 'hort_stroberi', 'name': 'Stroberi', 'icon': '🍓', 'description': 'Buah manis segar'},
+    {'id': 'hort_semangka', 'name': 'Semangka', 'icon': '🍉', 'description': 'Buah besar menyegarkan'},
+    {'id': 'hort_melon', 'name': 'Melon', 'icon': '🍈', 'description': 'Buah manis harum'},
+    {'id': 'hort_labu', 'name': 'Labu', 'icon': '🎃', 'description': 'Sayuran buah serbaguna'},
+    {'id': 'hort_kacang_panjang', 'name': 'Kacang Panjang', 'icon': '🫘', 'description': 'Sayuran polong'},
+    {'id': 'hort_pare', 'name': 'Pare', 'icon': '🥒', 'description': 'Sayuran pahit sehat'},
+    {'id': 'hort_jagung', 'name': 'Jagung Manis', 'icon': '🌽', 'description': 'Tanaman serealia manis'},
+    {'id': 'hort_kentang', 'name': 'Kentang', 'icon': '🥔', 'description': 'Sayuran umbi populer'},
+    {'id': 'hort_lobak', 'name': 'Lobak', 'icon': '🌿', 'description': 'Sayuran umbi segar'},
+    {'id': 'hort_seledri', 'name': 'Seledri', 'icon': '🌿', 'description': 'Sayuran aromatik'},
+    {'id': 'hort_kemangi', 'name': 'Kemangi', 'icon': '🌿', 'description': 'Herba aromatik'},
+    {'id': 'hort_mint', 'name': 'Mint', 'icon': '🌿', 'description': 'Herba segar'},
+    {'id': 'hort_rosemary', 'name': 'Rosemary', 'icon': '🌿', 'description': 'Herba aromatik Mediterania'},
+    {'id': 'hort_basil', 'name': 'Basil', 'icon': '🌿', 'description': 'Herba masakan Italia'},
+    {'id': 'hort_jahe', 'name': 'Jahe', 'icon': '🫚', 'description': 'Rempah berkhasiat'},
+    {'id': 'hort_kunyit', 'name': 'Kunyit', 'icon': '🫚', 'description': 'Rempah pewarna alami'},
+    {'id': 'hort_lengkuas', 'name': 'Lengkuas', 'icon': '🫚', 'description': 'Rempah bumbu masak'},
+    {'id': 'hort_mawar', 'name': 'Mawar', 'icon': '🌹', 'description': 'Bunga hias populer'},
+    {'id': 'hort_anggrek', 'name': 'Anggrek', 'icon': '🌸', 'description': 'Bunga hias eksotis'},
+    {'id': 'hort_melati', 'name': 'Melati', 'icon': '🌼', 'description': 'Bunga harum khas'},
+    {'id': 'hort_krisan', 'name': 'Krisan', 'icon': '🌼', 'description': 'Bunga hias beragam warna'},
+    {'id': 'hort_bunga_matahari', 'name': 'Bunga Matahari', 'icon': '🌻', 'description': 'Bunga cerah tinggi'},
+    {'id': 'hort_lavender', 'name': 'Lavender', 'icon': '💜', 'description': 'Bunga aromatik ungu'},
+    {'id': 'hort_adenium', 'name': 'Adenium', 'icon': '🌺', 'description': 'Bunga kamboja Jepang'},
+    {'id': 'hort_lidah_buaya', 'name': 'Lidah Buaya', 'icon': '🌿', 'description': 'Tanaman hias berkhasiat'},
+  ];
+
   @override
   void initState() {
     super.initState();
+    _scannerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    _scannerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _scannerController, curve: Curves.easeInOutSine),
+    );
     _loadAvailablePlants();
+  }
+
+  @override
+  void dispose() {
+    _scannerController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAvailablePlants() async {
     setState(() => _loading = true);
-    _availablePlants = await AiScanService.getAvailablePlants();
+    
+    // Fetch data from backend so scanning works with valid IDs
+    final backendPlants = await AiScanService.getAvailablePlants();
+    
+    final List<ScanAvailablePlantModel> reorderedPlants = [];
+    
+    for (final plantMap in _scannerPlants) {
+      final nameStr = plantMap['name'].toString().toLowerCase();
+      
+      ScanAvailablePlantModel? backendMatch;
+      try {
+        backendMatch = backendPlants.firstWhere((p) => p.name.toLowerCase() == nameStr);
+      } catch (_) {
+        backendMatch = null;
+      }
+      
+      final isFree = plantMap['id'] == 'hort_tomat' || 
+                     plantMap['id'] == 'hort_bayam' || 
+                     plantMap['id'] == 'hort_cabai';
+                     
+      if (backendMatch != null) {
+        reorderedPlants.add(ScanAvailablePlantModel(
+          id: backendMatch.id, // Gunakan ID asli dari backend agar scan tidak error
+          name: backendMatch.name,
+          icon: backendMatch.icon ?? plantMap['icon'] as String,
+          accessTier: isFree ? 'free' : 'premium',
+          isAccessible: isFree,
+          lockMessage: isFree ? null : 'Upgrade ke Premium untuk scan tanaman ${backendMatch.name}.',
+          modelStatus: backendMatch.modelStatus,
+          modelAccuracy: backendMatch.modelAccuracy,
+          diseases: backendMatch.diseases,
+        ));
+      } else {
+        reorderedPlants.add(ScanAvailablePlantModel(
+          id: plantMap['id'] as String,
+          name: plantMap['name'] as String,
+          icon: plantMap['icon'] as String,
+          accessTier: isFree ? 'free' : 'premium',
+          isAccessible: isFree,
+          lockMessage: isFree ? null : 'Upgrade ke Premium untuk scan tanaman ${plantMap['name']}.',
+          modelStatus: isFree ? 'ready' : 'in_development',
+          modelAccuracy: isFree ? 'Akurasi 95%' : 'Segera Hadir',
+          diseases: isFree ? ['Penyakit Daun', 'Hama'] : [],
+        ));
+      }
+    }
+    
+    _availablePlants = reorderedPlants;
     setState(() => _loading = false);
   }
 
@@ -114,6 +217,70 @@ class _AiScanScreenState extends State<AiScanScreen> {
             ),
           ),
         ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {}, // Already on Scan Foto
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B5E20),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [BoxShadow(color: const Color(0xFF1B5E20).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))],
+                        ),
+                        child: const Center(
+                          child: Text('Scan Foto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.info_outline_rounded, color: Colors.white),
+                                SizedBox(width: 10),
+                                Expanded(child: Text('Fitur Scan Real Time akan segera tersedia!')),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFF1B5E20),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Text('Scan Real Time', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         if (freePlants.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
@@ -135,7 +302,7 @@ class _AiScanScreenState extends State<AiScanScreen> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.82),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.72),
               delegate: SliverChildBuilderDelegate(
                 (_, i) => _buildPlantTile(freePlants[i]),
                 childCount: freePlants.length,
@@ -164,7 +331,7 @@ class _AiScanScreenState extends State<AiScanScreen> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.82),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.72),
               delegate: SliverChildBuilderDelegate(
                 (_, i) => _buildPlantTile(premiumPlants[i]),
                 childCount: premiumPlants.length,
@@ -300,39 +467,142 @@ class _AiScanScreenState extends State<AiScanScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          // ── Photo container with scanner animation overlay ──
           GestureDetector(
-            onTap: _pickImage,
+            onTap: _scanning ? null : _pickImage,
             child: Container(
-              height: 280,
+              height: 300,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 border: _imageFile == null
-                    ? Border.all(color: const Color(0xFF2E7D32).withOpacity(0.3), width: 2, strokeAlign: BorderSide.strokeAlignInside)
+                    ? Border.all(color: const Color(0xFF2E7D32).withOpacity(0.25), width: 2, strokeAlign: BorderSide.strokeAlignInside)
                     : null,
-                boxShadow: _imageFile != null
-                    ? [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 4))]
-                    : null,
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(_imageFile != null ? 0.10 : 0.04), blurRadius: 20, offset: const Offset(0, 6)),
+                ],
               ),
               child: _imageFile != null
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(22),
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
+                          // Photo
                           Image.file(_imageFile!, fit: BoxFit.cover),
-                          Positioned(
-                            top: 12, right: 12,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+
+                          // Dark vignette overlay while scanning
+                          if (_scanning)
+                            Container(
+                              color: Colors.black.withOpacity(0.35),
                             ),
-                          ),
+
+                          // Animated scanner beam
+                          if (_scanning)
+                            AnimatedBuilder(
+                              animation: _scannerAnimation,
+                              builder: (context, child) {
+                                return Positioned(
+                                  top: _scannerAnimation.value * 260,
+                                  left: 0,
+                                  right: 0,
+                                  child: Column(
+                                    children: [
+                                      // Gradient glow above
+                                      Container(
+                                        height: 40,
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Color(0x4400FF88),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // The main laser line
+                                      Container(
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Colors.transparent,
+                                              Color(0xFF00E676),
+                                              Color(0xFF69F0AE),
+                                              Color(0xFF00E676),
+                                              Colors.transparent,
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(color: const Color(0xFF00E676).withOpacity(0.8), blurRadius: 12, spreadRadius: 2),
+                                          ],
+                                        ),
+                                      ),
+                                      // Gradient glow below
+                                      Container(
+                                        height: 40,
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0x4400FF88),
+                                              Colors.transparent,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+
+                          // Corner scan brackets
+                          if (_scanning) ...[
+                            Positioned(top: 14, left: 14, child: _scanCorner(false, false)),
+                            Positioned(top: 14, right: 14, child: _scanCorner(false, true)),
+                            Positioned(bottom: 14, left: 14, child: _scanCorner(true, false)),
+                            Positioned(bottom: 14, right: 14, child: _scanCorner(true, true)),
+                          ],
+
+                          // Scanning label
+                          if (_scanning)
+                            Positioned(
+                              bottom: 18,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.55),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    '🔬 AI sedang menganalisis...',
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // Edit button (only when not scanning)
+                          if (!_scanning)
+                            Positioned(
+                              top: 12, right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+                              ),
+                            ),
                         ],
                       ),
                     )
@@ -340,17 +610,22 @@ class _AiScanScreenState extends State<AiScanScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(18),
+                          padding: const EdgeInsets.all(22),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(18),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+                            ),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.15)),
                           ),
-                          child: const Icon(Icons.camera_alt_rounded, size: 40, color: Color(0xFF2E7D32)),
+                          child: const Icon(Icons.add_photo_alternate_rounded, size: 46, color: Color(0xFF2E7D32)),
                         ),
-                        const SizedBox(height: 16),
-                        const Text('Tap untuk mengambil foto', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF424242))),
-                        const SizedBox(height: 4),
-                        Text('Ambil foto daun atau tanaman', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                        const SizedBox(height: 18),
+                        const Text('Tap untuk memilih foto', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF1B5E20))),
+                        const SizedBox(height: 5),
+                        Text('Pilih dari galeri atau ambil dari kamera', style: TextStyle(fontSize: 12.5, color: Colors.grey[500])),
                       ],
                     ),
             ),
@@ -442,14 +717,18 @@ class _AiScanScreenState extends State<AiScanScreen> {
 
   // ─── Result View ─────────────────────────────────────────────────
   Widget _buildResult() {
-    final isHealthy = _result?['diseaseName'] == null || _result?['diseaseName'] == 'Sehat' || _result?['diseaseName'] == 'Healthy';
+    final isHealthy = _result?['isHealthy'] == true ||
+        _result?['diseaseName'] == null ||
+        _result?['diseaseName'] == 'Sehat' ||
+        _result?['diseaseName'] == 'Healthy';
     final statusColor = isHealthy ? const Color(0xFF2E7D32) : const Color(0xFFE65100);
+    final statusBgLight = isHealthy ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Status banner
+          // ─── Status Banner ─────────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -473,6 +752,7 @@ class _AiScanScreenState extends State<AiScanScreen> {
                 Text(
                   _result?['diseaseName'] ?? 'Sehat',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
+                  textAlign: TextAlign.center,
                 ),
                 if (_result?['confidence'] != null) ...[
                   const SizedBox(height: 8),
@@ -483,7 +763,7 @@ class _AiScanScreenState extends State<AiScanScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Confidence: ${_result!['confidence']}%',
+                      'Keyakinan: ${_result!['confidence']}%',
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -491,28 +771,111 @@ class _AiScanScreenState extends State<AiScanScreen> {
               ],
             ),
           ),
-          // Image preview
+
+          // ─── Image Preview ─────────────────────────────────────────
           if (_imageFile != null)
             Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4))],
-              ),
+              decoration: const BoxDecoration(color: Colors.white),
               child: Column(
                 children: [
                   ClipRRect(
-                    child: Image.file(_imageFile!, height: 200, width: double.infinity, fit: BoxFit.cover),
+                    child: Image.file(_imageFile!, height: 180, width: double.infinity, fit: BoxFit.cover),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Text('Foto yang dianalisis', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text('Foto yang dianalisis', style: TextStyle(fontSize: 11, color: Colors.grey[400])),
                   ),
                 ],
               ),
             ),
+
+          // ─── Catatan Utama (Message) ───────────────────────────────
+          if (_result?['message'] != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusBgLight,
+                border: Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    isHealthy ? Icons.eco_rounded : Icons.report_rounded,
+                    size: 20, color: statusColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '📋 Catatan',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: statusColor),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _result!['message'],
+                          style: TextStyle(fontSize: 13, height: 1.5, color: statusColor.withOpacity(0.85)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ─── Deskripsi Kondisi ──────────────────────────────────────
+          if (_result?['description'] != null)
+            _buildInfoCard(
+              icon: Icons.visibility_rounded,
+              title: 'Hasil Pengamatan',
+              content: _result!['description'],
+              iconColor: const Color(0xFF5E35B1),
+              showDivider: true,
+            ),
+
+          // ─── Penanganan / Tips Perawatan ────────────────────────────
+          if (_result?['treatment'] != null)
+            _buildInfoCard(
+              icon: isHealthy ? Icons.tips_and_updates_rounded : Icons.medical_services_rounded,
+              title: isHealthy ? '💡 Tips Perawatan' : '💊 Cara Penanganan',
+              content: _result!['treatment'],
+              iconColor: isHealthy ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+              showDivider: true,
+            ),
+
+          // ─── Pencegahan ────────────────────────────────────────────
+          if (_result?['prevention'] != null)
+            _buildInfoCard(
+              icon: Icons.shield_rounded,
+              title: '🛡️ Pencegahan',
+              content: _result!['prevention'],
+              iconColor: const Color(0xFF1565C0),
+              showDivider: false,
+              isLast: true,
+            ),
+
+          // If no detail cards at all, show a basic close card
+          if (_result?['description'] == null && _result?['treatment'] == null && _result?['prevention'] == null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
+              ),
+              child: Text(
+                'Coba ambil foto dengan pencahayaan yang lebih baik dan arahkan kamera ke bagian daun atau buah secara dekat untuk hasil analisis yang lebih detail.',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500], height: 1.5),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -528,6 +891,52 @@ class _AiScanScreenState extends State<AiScanScreen> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Scan Lagi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String content,
+    required Color iconColor,
+    bool showDivider = true,
+    bool isLast = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(20)) : null,
+        border: showDivider ? Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)) : null,
+        boxShadow: isLast ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))] : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: iconColor),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: iconColor)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            content,
+            style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF424242)),
           ),
         ],
       ),
@@ -582,36 +991,33 @@ class _AiScanScreenState extends State<AiScanScreen> {
     if (xf != null) setState(() => _imageFile = File(xf.path));
   }
 
+  // ─── Corner bracket widget for scan overlay ────────────────────
+  Widget _scanCorner(bool flipV, bool flipH) {
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()
+        ..scale(flipH ? -1.0 : 1.0, flipV ? -1.0 : 1.0),
+      child: CustomPaint(
+        size: const Size(22, 22),
+        painter: _CornerPainter(),
+      ),
+    );
+  }
+
   Future<void> _doScan() async {
     if (_imageFile == null || _selectedPlant == null) return;
     setState(() => _scanning = true);
+    _scannerController.repeat(reverse: true);
 
     try {
-      // Upload to Cloudinary first
-      final imageUrl = await CloudinaryService.uploadImage(
-        _imageFile!,
-        preset: ApiConfig.otherPreset,
-      );
+      // Convert image to base64
+      final bytes = await _imageFile!.readAsBytes();
+      final base64Image = base64Encode(bytes);
 
-      if (imageUrl == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Gagal upload gambar'),
-              backgroundColor: Colors.red[600],
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          );
-        }
-        setState(() => _scanning = false);
-        return;
-      }
-
-      // Call scan API
+      // Call scan API with base64 image directly
       final result = await AiScanService.scan(
         plantTypeId: _selectedPlant!.id,
-        imageBase64: imageUrl,
+        imageBase64: base64Image,
         source: 'camera',
       );
 
@@ -619,6 +1025,8 @@ class _AiScanScreenState extends State<AiScanScreen> {
         _result = result.success ? (result.data as Map<String, dynamic>?) : null;
         _scanning = false;
       });
+      _scannerController.stop();
+      _scannerController.reset();
 
       if (!result.success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -631,6 +1039,8 @@ class _AiScanScreenState extends State<AiScanScreen> {
         );
       }
     } catch (e) {
+      _scannerController.stop();
+      _scannerController.reset();
       setState(() => _scanning = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -674,4 +1084,23 @@ class _AiScanScreenState extends State<AiScanScreen> {
       ),
     );
   }
+}
+
+// ─── Corner Bracket Painter ───────────────────────────────────────────────────
+class _CornerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF00E676)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const l = 14.0;
+    canvas.drawLine(const Offset(0, 0), Offset(0, l), paint);
+    canvas.drawLine(const Offset(0, 0), Offset(l, 0), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }

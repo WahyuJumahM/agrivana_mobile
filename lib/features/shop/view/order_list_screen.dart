@@ -7,6 +7,7 @@ import '../../../utils/dialogs.dart';
 import '../../../services/api_service.dart';
 import '../service/order_service.dart';
 import 'order_detail_screen.dart';
+import 'review_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
   const OrderListScreen({super.key});
@@ -279,6 +280,29 @@ class _OrderListScreenState extends State<OrderListScreen> with SingleTickerProv
                                 onPressed: () => _confirmReceive(order['id']?.toString() ?? ''),
                                 style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
                                 child: const Text('Konfirmasi Diterima'),
+                              ),
+                            ),
+                          ],
+                          if (status == 'completed') ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  // Navigate to order detail to see review options for each item
+                                  await Navigator.push(context, MaterialPageRoute(
+                                    builder: (_) => OrderDetailScreen(orderId: order['id']?.toString() ?? ''),
+                                  ));
+                                  _loadOrders();
+                                },
+                                icon: const Icon(Icons.rate_review_outlined, size: 18),
+                                label: const Text('Beri Ulasan', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppTheme.primary,
+                                  side: const BorderSide(color: AppTheme.primary),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
                               ),
                             ),
                           ],

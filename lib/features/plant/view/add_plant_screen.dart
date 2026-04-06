@@ -1,3 +1,4 @@
+//location: lib\features\plant\view\add_plant_screen.dart
 import 'package:flutter/material.dart';
 import '../model/plant_model.dart';
 import '../service/plant_service.dart';
@@ -28,6 +29,437 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
   String _mediaType = 'pot';
   DateTime _plantedAt = DateTime.now();
 
+  // ─── Hardcoded Hortikultura Data ─────────────────────────────────
+  // Additional horticultural plant types & varieties for enrichment
+  static const List<Map<String, dynamic>> _hortikulturaTypes = [
+    {
+      'id': 'hort_tomat',
+      'name': 'Tomat',
+      'icon': '🍅',
+      'description': 'Sayuran buah populer',
+    },
+    {
+      'id': 'hort_cabai',
+      'name': 'Cabai',
+      'icon': '🌶️',
+      'description': 'Bumbu dapur utama',
+    },
+    {
+      'id': 'hort_terong',
+      'name': 'Terong',
+      'icon': '🍆',
+      'description': 'Sayuran serbaguna',
+    },
+    {
+      'id': 'hort_timun',
+      'name': 'Timun',
+      'icon': '🥒',
+      'description': 'Sayuran segar',
+    },
+    {
+      'id': 'hort_selada',
+      'name': 'Selada',
+      'icon': '🥬',
+      'description': 'Sayuran daun hijau',
+    },
+    {
+      'id': 'hort_bayam',
+      'name': 'Bayam',
+      'icon': '🥬',
+      'description': 'Sayuran hijau bergizi',
+    },
+    {
+      'id': 'hort_kangkung',
+      'name': 'Kangkung',
+      'icon': '🌿',
+      'description': 'Sayuran air populer',
+    },
+    {
+      'id': 'hort_sawi',
+      'name': 'Sawi',
+      'icon': '🥬',
+      'description': 'Sayuran hijau serbaguna',
+    },
+    {
+      'id': 'hort_brokoli',
+      'name': 'Brokoli',
+      'icon': '🥦',
+      'description': 'Sayuran tinggi nutrisi',
+    },
+    {
+      'id': 'hort_wortel',
+      'name': 'Wortel',
+      'icon': '🥕',
+      'description': 'Sayuran umbi kaya vitamin A',
+    },
+    {
+      'id': 'hort_bawang_merah',
+      'name': 'Bawang Merah',
+      'icon': '🧅',
+      'description': 'Bumbu dapur esensial',
+    },
+    {
+      'id': 'hort_bawang_putih',
+      'name': 'Bawang Putih',
+      'icon': '🧄',
+      'description': 'Bumbu aromatik',
+    },
+    {
+      'id': 'hort_paprika',
+      'name': 'Paprika',
+      'icon': '🫑',
+      'description': 'Sayuran buah berwarna',
+    },
+    {
+      'id': 'hort_stroberi',
+      'name': 'Stroberi',
+      'icon': '🍓',
+      'description': 'Buah manis segar',
+    },
+    {
+      'id': 'hort_semangka',
+      'name': 'Semangka',
+      'icon': '🍉',
+      'description': 'Buah besar menyegarkan',
+    },
+    {
+      'id': 'hort_melon',
+      'name': 'Melon',
+      'icon': '🍈',
+      'description': 'Buah manis harum',
+    },
+    {
+      'id': 'hort_labu',
+      'name': 'Labu',
+      'icon': '🎃',
+      'description': 'Sayuran buah serbaguna',
+    },
+    {
+      'id': 'hort_kacang_panjang',
+      'name': 'Kacang Panjang',
+      'icon': '🫘',
+      'description': 'Sayuran polong',
+    },
+    {
+      'id': 'hort_pare',
+      'name': 'Pare',
+      'icon': '🥒',
+      'description': 'Sayuran pahit sehat',
+    },
+    {
+      'id': 'hort_jagung',
+      'name': 'Jagung Manis',
+      'icon': '🌽',
+      'description': 'Tanaman serealia manis',
+    },
+    {
+      'id': 'hort_kentang',
+      'name': 'Kentang',
+      'icon': '🥔',
+      'description': 'Sayuran umbi populer',
+    },
+    {
+      'id': 'hort_lobak',
+      'name': 'Lobak',
+      'icon': '🌿',
+      'description': 'Sayuran umbi segar',
+    },
+    {
+      'id': 'hort_seledri',
+      'name': 'Seledri',
+      'icon': '🌿',
+      'description': 'Sayuran aromatik',
+    },
+    {
+      'id': 'hort_kemangi',
+      'name': 'Kemangi',
+      'icon': '🌿',
+      'description': 'Herba aromatik',
+    },
+    {
+      'id': 'hort_mint',
+      'name': 'Mint',
+      'icon': '🌿',
+      'description': 'Herba segar',
+    },
+    {
+      'id': 'hort_rosemary',
+      'name': 'Rosemary',
+      'icon': '🌿',
+      'description': 'Herba aromatik Mediterania',
+    },
+    {
+      'id': 'hort_basil',
+      'name': 'Basil',
+      'icon': '🌿',
+      'description': 'Herba masakan Italia',
+    },
+    {
+      'id': 'hort_jahe',
+      'name': 'Jahe',
+      'icon': '🫚',
+      'description': 'Rempah berkhasiat',
+    },
+    {
+      'id': 'hort_kunyit',
+      'name': 'Kunyit',
+      'icon': '🫚',
+      'description': 'Rempah pewarna alami',
+    },
+    {
+      'id': 'hort_lengkuas',
+      'name': 'Lengkuas',
+      'icon': '🫚',
+      'description': 'Rempah bumbu masak',
+    },
+    {
+      'id': 'hort_mawar',
+      'name': 'Mawar',
+      'icon': '🌹',
+      'description': 'Bunga hias populer',
+    },
+    {
+      'id': 'hort_anggrek',
+      'name': 'Anggrek',
+      'icon': '🌸',
+      'description': 'Bunga hias eksotis',
+    },
+    {
+      'id': 'hort_melati',
+      'name': 'Melati',
+      'icon': '🌼',
+      'description': 'Bunga harum khas',
+    },
+    {
+      'id': 'hort_krisan',
+      'name': 'Krisan',
+      'icon': '🌼',
+      'description': 'Bunga hias beragam warna',
+    },
+    {
+      'id': 'hort_bunga_matahari',
+      'name': 'Bunga Matahari',
+      'icon': '🌻',
+      'description': 'Bunga cerah tinggi',
+    },
+    {
+      'id': 'hort_lavender',
+      'name': 'Lavender',
+      'icon': '💜',
+      'description': 'Bunga aromatik ungu',
+    },
+    {
+      'id': 'hort_adenium',
+      'name': 'Adenium',
+      'icon': '🌺',
+      'description': 'Bunga kamboja Jepang',
+    },
+    {
+      'id': 'hort_lidah_buaya',
+      'name': 'Lidah Buaya',
+      'icon': '🌿',
+      'description': 'Tanaman hias berkhasiat',
+    },
+  ];
+
+  static const Map<String, List<Map<String, dynamic>>> _hortikulturaVarieties =
+      {
+        'hort_tomat': [
+          {
+            'id': 'var_tomat_cherry',
+            'name': 'Tomat Cherry',
+            'icon': '🍅',
+            'description': 'Buah kecil manis',
+          },
+          {
+            'id': 'var_tomat_beef',
+            'name': 'Tomat Beef',
+            'icon': '🍅',
+            'description': 'Buah besar tebal',
+          },
+          {
+            'id': 'var_tomat_roma',
+            'name': 'Tomat Roma',
+            'icon': '🍅',
+            'description': 'Cocok untuk saus',
+          },
+          {
+            'id': 'var_tomat_gondol',
+            'name': 'Tomat Gondol',
+            'icon': '🍅',
+            'description': 'Varietas lokal oval',
+          },
+          {
+            'id': 'var_tomat_permata',
+            'name': 'Tomat Permata',
+            'icon': '🍅',
+            'description': 'Varietas unggul lokal',
+          },
+          {
+            'id': 'var_tomat_servo',
+            'name': 'Tomat Servo',
+            'icon': '🍅',
+            'description': 'Tahan penyakit',
+          },
+          {
+            'id': 'var_tomat_mutiara',
+            'name': 'Tomat Mutiara',
+            'icon': '🍅',
+            'description': 'Buah bulat merata',
+          },
+        ],
+        'hort_cabai': [
+          {
+            'id': 'var_cabai_rawit',
+            'name': 'Cabai Rawit',
+            'icon': '🌶️',
+            'description': 'Pedas kecil',
+          },
+          {
+            'id': 'var_cabai_merah_besar',
+            'name': 'Cabai Merah Besar',
+            'icon': '🌶️',
+            'description': 'Bumbu utama',
+          },
+          {
+            'id': 'var_cabai_keriting',
+            'name': 'Cabai Keriting',
+            'icon': '🌶️',
+            'description': 'Pedas tekstur keriting',
+          },
+          {
+            'id': 'var_cabai_rawit_hijau',
+            'name': 'Cabai Rawit Hijau',
+            'icon': '🌶️',
+            'description': 'Rawit segar hijau',
+          },
+          {
+            'id': 'var_cabai_hias',
+            'name': 'Cabai Hias',
+            'icon': '🌶️',
+            'description': 'Dekoratif berwarna-warni',
+          },
+          {
+            'id': 'var_cabai_jalapeno',
+            'name': 'Cabai Jalapeño',
+            'icon': '🌶️',
+            'description': 'Pedas sedang khas Meksiko',
+          },
+        ],
+        'hort_terong': [
+          {
+            'id': 'var_terong_ungu',
+            'name': 'Terong Ungu',
+            'icon': '🍆',
+            'description': 'Varietas umum',
+          },
+          {
+            'id': 'var_terong_hijau',
+            'name': 'Terong Hijau',
+            'icon': '🍆',
+            'description': 'Terong lalap',
+          },
+          {
+            'id': 'var_terong_bulat',
+            'name': 'Terong Bulat',
+            'icon': '🍆',
+            'description': 'Bentuk bulat unik',
+          },
+          {
+            'id': 'var_terong_belanda',
+            'name': 'Terong Belanda',
+            'icon': '🍆',
+            'description': 'Buah kecil asam',
+          },
+        ],
+        'hort_timun': [
+          {
+            'id': 'var_timun_lokal',
+            'name': 'Timun Lokal',
+            'icon': '🥒',
+            'description': 'Varietas umum',
+          },
+          {
+            'id': 'var_timun_jepang',
+            'name': 'Timun Jepang',
+            'icon': '🥒',
+            'description': 'Panjang renyah',
+          },
+          {
+            'id': 'var_timun_suri',
+            'name': 'Timun Suri',
+            'icon': '🥒',
+            'description': 'Buah besar untuk minuman',
+          },
+        ],
+        'hort_selada': [
+          {
+            'id': 'var_selada_keriting',
+            'name': 'Selada Keriting',
+            'icon': '🥬',
+            'description': 'Daun bergelombang',
+          },
+          {
+            'id': 'var_selada_romaine',
+            'name': 'Selada Romaine',
+            'icon': '🥬',
+            'description': 'Daun panjang renyah',
+          },
+          {
+            'id': 'var_selada_butterhead',
+            'name': 'Selada Butterhead',
+            'icon': '🥬',
+            'description': 'Lembut mentega',
+          },
+          {
+            'id': 'var_selada_iceberg',
+            'name': 'Selada Iceberg',
+            'icon': '🥬',
+            'description': 'Renyah bulat',
+          },
+        ],
+        'hort_stroberi': [
+          {
+            'id': 'var_stroberi_california',
+            'name': 'Stroberi California',
+            'icon': '🍓',
+            'description': 'Buah besar manis',
+          },
+          {
+            'id': 'var_stroberi_jepang',
+            'name': 'Stroberi Jepang',
+            'icon': '🍓',
+            'description': 'Premium manis harum',
+          },
+          {
+            'id': 'var_stroberi_alpine',
+            'name': 'Stroberi Alpine',
+            'icon': '🍓',
+            'description': 'Buah kecil aromatik',
+          },
+        ],
+        'hort_paprika': [
+          {
+            'id': 'var_paprika_merah',
+            'name': 'Paprika Merah',
+            'icon': '🫑',
+            'description': 'Manis matang',
+          },
+          {
+            'id': 'var_paprika_hijau',
+            'name': 'Paprika Hijau',
+            'icon': '🫑',
+            'description': 'Segar renyah',
+          },
+          {
+            'id': 'var_paprika_kuning',
+            'name': 'Paprika Kuning',
+            'icon': '🫑',
+            'description': 'Manis lembut',
+          },
+        ],
+      };
+
   @override
   void initState() {
     super.initState();
@@ -37,18 +469,66 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
   Future<void> _loadCategories() async {
     setState(() => _loading = true);
     _categories = await PlantService.getCategories();
+
+    // Sort: put Hortikultura category first
+    _categories.sort((a, b) {
+      final aIsHort = a.name.toLowerCase().contains('hortikultura');
+      final bIsHort = b.name.toLowerCase().contains('hortikultura');
+      if (aIsHort && !bIsHort) return -1;
+      if (!aIsHort && bIsHort) return 1;
+      return a.name.compareTo(b.name);
+    });
+
     setState(() => _loading = false);
   }
 
   Future<void> _loadTypes(String categoryId) async {
     setState(() => _loading = true);
     _types = await PlantService.getTypesByCategory(categoryId);
+
+    // If this is hortikultura category and API returned few/no types,
+    // merge with our hardcoded hortikultura data
+    if (_selectedCategory != null &&
+        _selectedCategory!.name.toLowerCase().contains('hortikultura')) {
+      final existingNames = _types.map((t) => t.name.toLowerCase()).toSet();
+      for (final ht in _hortikulturaTypes) {
+        if (!existingNames.contains((ht['name'] as String).toLowerCase())) {
+          _types.add(
+            PlantTypeModel(
+              id: ht['id'] as String,
+              name: ht['name'] as String,
+              icon: ht['icon'] as String?,
+              description: ht['description'] as String?,
+            ),
+          );
+        }
+      }
+    }
+
     setState(() => _loading = false);
   }
 
   Future<void> _loadVarieties(String typeId) async {
     setState(() => _loading = true);
     _varieties = await PlantService.getVarieties(typeId);
+
+    // Merge hardcoded varieties if available
+    if (_hortikulturaVarieties.containsKey(typeId)) {
+      final existingNames = _varieties.map((v) => v.name.toLowerCase()).toSet();
+      for (final hv in _hortikulturaVarieties[typeId]!) {
+        if (!existingNames.contains((hv['name'] as String).toLowerCase())) {
+          _varieties.add(
+            PlantVarietyModel(
+              id: hv['id'] as String,
+              name: hv['name'] as String,
+              icon: hv['icon'] as String?,
+              description: hv['description'] as String?,
+            ),
+          );
+        }
+      }
+    }
+
     setState(() => _loading = false);
   }
 
@@ -60,7 +540,11 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           _stepTitle,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: const Color(0xFF1B5E20),
         foregroundColor: Colors.white,
@@ -94,7 +578,10 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 children: [
                   const CircularProgressIndicator(color: Color(0xFF2E7D32)),
                   const SizedBox(height: 12),
-                  Text('Memuat data...', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                  Text(
+                    'Memuat data...',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                  ),
                 ],
               ),
             )
@@ -115,12 +602,15 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
           return Expanded(
             child: Row(
               children: [
-                if (i > 0) Expanded(
-                  child: Container(
-                    height: 2,
-                    color: isDone ? Colors.white : Colors.white.withOpacity(0.25),
+                if (i > 0)
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      color: isDone
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.25),
+                    ),
                   ),
-                ),
                 Container(
                   width: 28,
                   height: 28,
@@ -129,19 +619,27 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                     color: isActive
                         ? Colors.white
                         : isDone
-                            ? Colors.white.withOpacity(0.8)
-                            : Colors.white.withOpacity(0.2),
-                    border: isActive ? Border.all(color: Colors.white, width: 2) : null,
+                        ? Colors.white.withOpacity(0.8)
+                        : Colors.white.withOpacity(0.2),
+                    border: isActive
+                        ? Border.all(color: Colors.white, width: 2)
+                        : null,
                   ),
                   child: Center(
                     child: isDone
-                        ? Icon(Icons.check_rounded, size: 16, color: const Color(0xFF1B5E20))
+                        ? Icon(
+                            Icons.check_rounded,
+                            size: 16,
+                            color: const Color(0xFF1B5E20),
+                          )
                         : Text(
                             '${i + 1}',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: isActive ? const Color(0xFF1B5E20) : Colors.white.withOpacity(0.6),
+                              color: isActive
+                                  ? const Color(0xFF1B5E20)
+                                  : Colors.white.withOpacity(0.6),
                             ),
                           ),
                   ),
@@ -190,7 +688,148 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ─── Custom Plant Card (top) ─────────────────
+        // ─── Hortikultura Section Header ──────────────
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E7D32).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('🌱', style: TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tanaman Hortikultura',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1B5E20),
+                    ),
+                  ),
+                  Text(
+                    'Sayuran, buah, bunga & tanaman hias',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF66BB6A)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // ─── Category Cards (Hortikultura) ────────────
+        ...List.generate(_categories.length, (i) {
+          final cat = _categories[i];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  _isCustom = false;
+                  _selectedCategory = cat;
+                  _loadTypes(cat.id);
+                  setState(() => _step = 1);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE8F5E9)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: Text(
+                            cat.icon ?? '🌿',
+                            style: const TextStyle(fontSize: 26),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              cat.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (cat.description != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 3),
+                                child: Text(
+                                  cat.description!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey[400],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+
+        const SizedBox(height: 8),
+
+        // ─── Divider ─────────────────────────────────
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey[300])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'atau buat sendiri',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.grey[300])),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // ─── Custom Plant Card (bottom) ─────────────
         GestureDetector(
           onTap: () {
             setState(() {
@@ -208,11 +847,19 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF2E7D32), Color(0xFF43A047), Color(0xFF66BB6A)],
+                colors: [
+                  Color(0xFF546E7A),
+                  Color(0xFF78909C),
+                  Color(0xFF90A4AE),
+                ],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6)),
+                BoxShadow(
+                  color: const Color(0xFF546E7A).withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
               ],
             ),
             child: Row(
@@ -255,94 +902,17 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 24),
-
-        // ─── Divider ─────────────────────────────────
-        Row(
-          children: [
-            Expanded(child: Divider(color: Colors.grey[300])),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text('atau pilih kategori', style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-            ),
-            Expanded(child: Divider(color: Colors.grey[300])),
-          ],
-        ),
         const SizedBox(height: 16),
-
-        // ─── Category Cards ──────────────────────────
-        ...List.generate(_categories.length, (i) {
-          final cat = _categories[i];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () {
-                  _isCustom = false;
-                  _selectedCategory = cat;
-                  _loadTypes(cat.id);
-                  setState(() => _step = 1);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE8F5E9)),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 2)),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Center(child: Text(cat.icon ?? '🌿', style: const TextStyle(fontSize: 26))),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              cat.name,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            if (cat.description != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 3),
-                                child: Text(
-                                  cat.description!,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.chevron_right_rounded, color: Colors.grey[400]),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
       ],
     );
   }
@@ -363,9 +933,15 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
               child: const Text('🌿', style: TextStyle(fontSize: 48)),
             ),
             const SizedBox(height: 16),
-            const Text('Tidak ada jenis tanaman', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            const Text(
+              'Tidak ada jenis tanaman',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 6),
-            Text('Kategori ini belum memiliki jenis', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text(
+              'Kategori ini belum memiliki jenis',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () {
@@ -382,8 +958,13 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 elevation: 0,
               ),
             ),
@@ -419,7 +1000,10 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFE8F5E9)),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                  ),
                 ],
               ),
               child: Column(
@@ -432,7 +1016,12 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                       color: const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Center(child: Text(type.icon ?? '🌱', style: const TextStyle(fontSize: 24))),
+                    child: Center(
+                      child: Text(
+                        type.icon ?? '🌱',
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -479,14 +1068,26 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
+                        color: isSelected
+                            ? const Color(0xFFE8F5E9)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFFE0E0E0),
+                          color: isSelected
+                              ? const Color(0xFF2E7D32)
+                              : const Color(0xFFE0E0E0),
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: isSelected
-                            ? [BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4))]
+                            ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF2E7D32,
+                                  ).withOpacity(0.1),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
                             : null,
                       ),
                       child: Row(
@@ -495,10 +1096,17 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFFC8E6C9) : const Color(0xFFF5F5F5),
+                              color: isSelected
+                                  ? const Color(0xFFC8E6C9)
+                                  : const Color(0xFFF5F5F5),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Center(child: Text(v.icon ?? '🌿', style: const TextStyle(fontSize: 20))),
+                            child: Center(
+                              child: Text(
+                                v.icon ?? '🌿',
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -509,7 +1117,9 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                                   v.name,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: isSelected ? const Color(0xFF1B5E20) : Colors.black87,
+                                    color: isSelected
+                                        ? const Color(0xFF1B5E20)
+                                        : Colors.black87,
                                   ),
                                 ),
                                 if (v.description != null)
@@ -517,7 +1127,10 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                                     padding: const EdgeInsets.only(top: 3),
                                     child: Text(
                                       v.description!,
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[500],
+                                      ),
                                     ),
                                   ),
                               ],
@@ -530,7 +1143,11 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                                 color: Color(0xFF2E7D32),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                              child: const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                         ],
                       ),
@@ -555,9 +1172,15 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                     child: const Text('🌿', style: TextStyle(fontSize: 48)),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Tidak ada varietas tersedia', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Tidak ada varietas tersedia',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
-                  Text('Lanjutkan ke detail tanaman', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                  Text(
+                    'Lanjutkan ke detail tanaman',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                  ),
                 ],
               ),
             ),
@@ -573,12 +1196,17 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 elevation: 0,
               ),
               child: Text(
                 _selectedVariety != null ? 'Lanjutkan' : 'Lewati & Lanjutkan',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -589,7 +1217,14 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
 
   // ─── Step 3: Details ─────────────────────────────────────────────
   Widget _buildDetailsStep() {
-    final mediaOptions = ['pot', 'ground', 'hydroponic', 'grow_bag', 'polybag', 'tanah_sawah'];
+    final mediaOptions = [
+      'pot',
+      'ground',
+      'hydroponic',
+      'grow_bag',
+      'polybag',
+      'tanah_sawah',
+    ];
     final mediaLabels = {
       'pot': 'Pot',
       'ground': 'Tanah Langsung',
@@ -599,16 +1234,26 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
       'tanah_sawah': 'Tanah Sawah',
     };
 
-    InputDecoration inputDeco(String label, IconData icon, {String? hint}) => InputDecoration(
-      labelText: label,
-      hintText: hint,
-      prefixIcon: Icon(icon, color: const Color(0xFF2E7D32)),
-      filled: true,
-      fillColor: const Color(0xFFF5F8F5),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
+    InputDecoration inputDeco(String label, IconData icon, {String? hint}) =>
+        InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: const Color(0xFF2E7D32)),
+          filled: true,
+          fillColor: const Color(0xFFF5F8F5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+        );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -620,7 +1265,9 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: _isCustom ? [const Color(0xFFF1F8E9), const Color(0xFFE8F5E9)] : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
+                colors: _isCustom
+                    ? [const Color(0xFFF1F8E9), const Color(0xFFE8F5E9)]
+                    : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -658,12 +1305,18 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                       if (!_isCustom && _selectedVariety != null)
                         Text(
                           _selectedVariety!.name,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       if (_isCustom)
                         Text(
                           'Isi nama dan detail tanaman kamu sendiri',
-                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
                         ),
                     ],
                   ),
@@ -674,14 +1327,23 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
           const SizedBox(height: 22),
           TextField(
             controller: _nameCtrl,
-            decoration: inputDeco('Nama Tanaman *', Icons.local_florist_rounded, hint: _isCustom ? 'Contoh: Cabai Rawit Merah' : null),
+            decoration: inputDeco(
+              'Nama Tanaman *',
+              Icons.local_florist_rounded,
+              hint: _isCustom ? 'Contoh: Cabai Rawit Merah' : null,
+            ),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             value: _mediaType,
             decoration: inputDeco('Media Tanam', Icons.eco_rounded),
             items: mediaOptions
-                .map((m) => DropdownMenuItem(value: m, child: Text(mediaLabels[m] ?? m)))
+                .map(
+                  (m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(mediaLabels[m] ?? m),
+                  ),
+                )
                 .toList(),
             onChanged: (v) => setState(() => _mediaType = v!),
           ),
@@ -697,7 +1359,10 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
               if (d != null) setState(() => _plantedAt = d);
             },
             child: InputDecorator(
-              decoration: inputDeco('Tanggal Tanam', Icons.calendar_today_rounded),
+              decoration: inputDeco(
+                'Tanggal Tanam',
+                Icons.calendar_today_rounded,
+              ),
               child: Text(
                 '${_plantedAt.day}/${_plantedAt.month}/${_plantedAt.year}',
                 style: const TextStyle(fontSize: 15),
@@ -707,18 +1372,29 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _locCtrl,
-            decoration: inputDeco('Lokasi (opsional)', Icons.location_on_rounded, hint: 'Contoh: Halaman belakang'),
+            decoration: inputDeco(
+              'Lokasi (opsional)',
+              Icons.location_on_rounded,
+              hint: 'Contoh: Halaman belakang',
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _areaCtrl,
-            decoration: inputDeco('Luas Area (m²) - Opsional', Icons.straighten_rounded),
+            decoration: inputDeco(
+              'Luas Area (m²) - Opsional',
+              Icons.straighten_rounded,
+            ),
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _notesCtrl,
-            decoration: inputDeco('Catatan (opsional)', Icons.notes_rounded, hint: 'Info tambahan tentang tanaman'),
+            decoration: inputDeco(
+              'Catatan (opsional)',
+              Icons.notes_rounded,
+              hint: 'Info tambahan tentang tanaman',
+            ),
             maxLines: 3,
           ),
           const SizedBox(height: 28),
@@ -730,7 +1406,9 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2E7D32),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 2,
                 shadowColor: const Color(0xFF2E7D32).withOpacity(0.3),
               ),
@@ -760,7 +1438,9 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
           content: const Text('Nama tanaman wajib diisi'),
           backgroundColor: Colors.red[600],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -787,9 +1467,13 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 ? result.message
                 : 'Tanaman berhasil ditambahkan!',
           ),
-          backgroundColor: result.success ? const Color(0xFF2E7D32) : Colors.red,
+          backgroundColor: result.success
+              ? const Color(0xFF2E7D32)
+              : Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       if (result.success) Navigator.pop(context, true);

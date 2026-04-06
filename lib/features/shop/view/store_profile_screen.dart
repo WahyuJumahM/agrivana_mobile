@@ -60,7 +60,12 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     if (_loading) {
       return Scaffold(
         backgroundColor: AppTheme.background,
-        appBar: AppBar(title: const Text('Profil Toko')),
+        appBar: AppBar(
+          title: const Text('Profil Toko'),
+          backgroundColor: AppTheme.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
         body: const ShimmerListView(itemCount: 3, itemHeight: 100),
       );
     }
@@ -68,7 +73,12 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
     if (_storeData == null) {
       return Scaffold(
         backgroundColor: AppTheme.background,
-        appBar: AppBar(title: const Text('Profil Toko')),
+        appBar: AppBar(
+          title: const Text('Profil Toko'),
+          backgroundColor: AppTheme.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
         body: const Center(child: Text('Toko tidak ditemukan.')),
       );
     }
@@ -88,13 +98,35 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
         slivers: [
           // ─── Header AppBar ──────────────────────────────
           SliverAppBar(
-            expandedHeight: 180,
+            expandedHeight: 200,
             pinned: true,
+            title: const Text('Profil Toko'),
+            foregroundColor: Colors.white,
+            iconTheme: const IconThemeData(color: Colors.white),
             systemOverlayStyle: SystemUiOverlayStyle.light,
             flexibleSpace: FlexibleSpaceBar(
-              background: banner != null && banner.isNotEmpty
-                  ? Image.network(banner, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _plBanner())
-                  : _plBanner(),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  banner != null && banner.isNotEmpty
+                      ? Image.network(banner, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _plBanner())
+                      : _plBanner(),
+                  // Gradient overlay for better text readability
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.4),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.3),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             backgroundColor: AppTheme.primary,
           ),
@@ -103,83 +135,159 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ─── Store Info Card ──────────────────────
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  transform: Matrix4.translationValues(0, -20, 0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Photo
-                      Container(
-                        width: 64, height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppTheme.divider, width: 3),
-                          boxShadow: AppTheme.softShadow,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(32),
-                          child: photo != null && photo.isNotEmpty
-                              ? Image.network(photo, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _plPhoto())
-                              : _plPhoto(),
-                        ),
+                // ─── Store Info Card (with overlapping avatar) ──────
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 40),
+                      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: AppTheme.softShadow,
                       ),
-                      const SizedBox(width: 16),
-                      // Details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Store name
+                          Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          // Location
+                          Row(children: [
+                            Icon(Icons.location_on_rounded, size: 16, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Expanded(child: Text(city, style: TextStyle(fontSize: 13, color: Colors.grey.shade600))),
+                          ]),
+                          const SizedBox(height: 12),
+                          // Stats row
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(children: [
+                                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                      const Icon(Icons.star_rounded, size: 18, color: Colors.amber),
+                                      const SizedBox(width: 4),
+                                      Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                    ]),
+                                    const SizedBox(height: 2),
+                                    Text('Rating', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                                  ]),
+                                ),
+                                Container(width: 1, height: 30, color: AppTheme.divider),
+                                Expanded(
+                                  child: Column(children: [
+                                    Text('$totalSales', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 2),
+                                    Text('Terjual', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                                  ]),
+                                ),
+                                Container(width: 1, height: 30, color: AppTheme.divider),
+                                Expanded(
+                                  child: Column(children: [
+                                    Text('${_products.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 2),
+                                    Text('Produk', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                                  ]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (created != null) ...[
+                            const SizedBox(height: 12),
                             Row(children: [
-                              const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Expanded(child: Text(city, style: TextStyle(fontSize: 13, color: Colors.grey.shade600))),
-                            ]),
-                            const SizedBox(height: 8),
-                            Row(children: [
-                              const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
-                              Text(' ${rating.toStringAsFixed(1)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                              Text(' • $totalSales Terjual', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                              Icon(Icons.calendar_today_outlined, size: 13, color: Colors.grey.shade400),
+                              const SizedBox(width: 6),
+                              Text('Bergabung sejak ${created.day}/${created.month}/${created.year}',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                             ]),
                           ],
+                        ],
+                      ),
+                    ),
+                    // Floating avatar
+                    Positioned(
+                      top: 8,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          width: 68, height: 68,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(34),
+                            child: photo != null && photo.isNotEmpty
+                                ? Image.network(photo, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _plPhoto())
+                                : _plPhoto(),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
 
-                // ─── Description ─────────────────────────
+                // ─── Description Card ─────────────────────
                 Container(
-                  color: Colors.white,
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  transform: Matrix4.translationValues(0, -20, 0),
+                  margin: const EdgeInsets.symmetric(horizontal: 0),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Deskripsi Toko', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4)),
-                      if (created != null) ...[
-                        const SizedBox(height: 12),
-                        Text('Bergabung: ${created.day}/${created.month}/${created.year}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-                      ],
+                      Row(children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.info_outline_rounded, size: 16, color: AppTheme.primary),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text('Deskripsi Toko', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      ]),
+                      const SizedBox(height: 10),
+                      Text(description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.5)),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 // ─── Products Title ──────────────────────
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: const Text('Produk Toko Ini', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.inventory_2_outlined, size: 16, color: AppTheme.primary),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text('Produk Toko Ini', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    Text('${_products.length} produk', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                  ]),
                 ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -194,8 +302,12 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
             SliverToBoxAdapter(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text('Toko ini belum memiliki produk.', style: TextStyle(color: Colors.grey.shade500)),
+                  padding: const EdgeInsets.all(40),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 12),
+                    Text('Toko ini belum memiliki produk.', style: TextStyle(color: Colors.grey.shade500)),
+                  ]),
                 ),
               ),
             )

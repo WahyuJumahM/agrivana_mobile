@@ -62,6 +62,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _ewalletExpanded = false;
   bool _bankExpanded = false;
 
+  bool _selfPickup = false;
   bool _checkingOut = false;
   final _notesCtrl = TextEditingController();
 
@@ -240,7 +241,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   double get _subtotal => (_product?.price ?? 0) * _quantity;
-  double get _shippingCost => (_selectedShipping?['cost'] as num?)?.toDouble() ?? 0;
+  double get _shippingCost => _selfPickup ? 0 : ((_selectedShipping?['cost'] as num?)?.toDouble() ?? 0);
   double get _total => _subtotal + _shippingCost;
 
   Future<void> _onRefresh() async {
@@ -283,8 +284,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
       'subtotal': _subtotal,
       'shippingCost': _shippingCost,
-      'courier': _selectedShipping?['courier'],
-      'courierService': _selectedShipping?['service'],
+      'courier': _selfPickup ? 'Ambil Sendiri' : _selectedShipping?['courier'],
+      'courierService': _selfPickup ? 'PICKUP' : _selectedShipping?['service'],
       'paymentMethod': _paymentMethod,
       'notes': _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
     };
@@ -516,70 +517,192 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const Text('Pengiriman', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 12),
-                      if (_shippingLoading)
-                        const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)))
-                      else if (_shippingError != null)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
+
+                      // ─── Self Pickup Option ────────────
+                      GestureDetector(
+                        onTap: () => setState(() => _selfPickup = !_selfPickup),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.error.withOpacity(0.06),
+                            gradient: _selfPickup
+                                ? LinearGradient(colors: [
+                                    AppTheme.success.withOpacity(0.08),
+                                    AppTheme.success.withOpacity(0.03),
+                                  ])
+                                : null,
+                            color: _selfPickup ? null : AppTheme.background,
                             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                            border: Border.all(color: AppTheme.error.withOpacity(0.2)),
+                            border: Border.all(
+                              color: _selfPickup ? AppTheme.success.withOpacity(0.5) : AppTheme.divider,
+                              width: _selfPickup ? 1.5 : 1,
+                            ),
                           ),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(_shippingError!, style: const TextStyle(fontSize: 12, color: AppTheme.error)),
-                            const SizedBox(height: 6),
-                            GestureDetector(
-                              onTap: _fetchShippingCost,
-                              child: const Text('↻ Coba Lagi',
-                                  style: TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                          child: Row(children: [
+                            SizedBox(
+                              width: 22, height: 22,
+                              child: Checkbox(
+                                value: _selfPickup,
+                                onChanged: (v) => setState(() => _selfPickup = v ?? false),
+                                activeColor: AppTheme.success,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
                             ),
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: _selfPickup
+                                    ? AppTheme.success.withOpacity(0.15)
+                                    : Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.store_rounded,
+                                size: 16,
+                                color: _selfPickup ? AppTheme.success : AppTheme.textHint,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Ambil di Toko',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: _selfPickup ? AppTheme.success : AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Ambil pesanan langsung ke toko untuk gratis ongkir',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: _selfPickup ? AppTheme.success.withOpacity(0.7) : AppTheme.textHint,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_selfPickup)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.success.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Text(
+                                  'GRATIS',
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.success),
+                                ),
+                              ),
                           ]),
-                        )
-                      else if (_shippingOptions.isEmpty)
-                        const Text('Menunggu data alamat...', style: TextStyle(fontSize: 12, color: AppTheme.textHint))
-                      else if (_selectedShipping != null)
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ─── Courier Shipping Info ─────────
+                      if (!_selfPickup) ...[
+                        if (_shippingLoading)
+                          const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)))
+                        else if (_shippingError != null)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppTheme.error.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                              border: Border.all(color: AppTheme.error.withOpacity(0.2)),
+                            ),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(_shippingError!, style: const TextStyle(fontSize: 12, color: AppTheme.error)),
+                              const SizedBox(height: 6),
+                              GestureDetector(
+                                onTap: _fetchShippingCost,
+                                child: const Text('↻ Coba Lagi',
+                                    style: TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                              ),
+                            ]),
+                          )
+                        else if (_shippingOptions.isEmpty)
+                          const Text('Menunggu data alamat...', style: TextStyle(fontSize: 12, color: AppTheme.textHint))
+                        else if (_selectedShipping != null)
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primary.withOpacity(0.06),
+                                  AppTheme.accent.withOpacity(0.03),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                              border: Border.all(color: AppTheme.primary.withOpacity(0.4), width: 1.5),
+                            ),
+                            child: Row(children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.local_shipping_rounded, size: 18, color: AppTheme.primary),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text('${_selectedShipping!['courier']}',
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                                  if ((_selectedShipping!['etd'] as String?)?.isNotEmpty == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text('Estimasi: ${_selectedShipping!['etd']}',
+                                          style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                                    ),
+                                ]),
+                              ),
+                              Text(AppFormatters.currency(_selectedShipping!['cost']),
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                            ]),
+                          )
+                        else
+                          const Text('Menunggu data alamat...', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
+                      ] else
+                        // Self pickup selected - show friendly message
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primary.withOpacity(0.06),
-                                AppTheme.accent.withOpacity(0.03),
-                              ],
-                            ),
+                            color: AppTheme.success.withOpacity(0.06),
                             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                            border: Border.all(color: AppTheme.primary.withOpacity(0.4), width: 1.5),
+                            border: Border.all(color: AppTheme.success.withOpacity(0.3)),
                           ),
                           child: Row(children: [
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.primary.withOpacity(0.1),
+                                color: AppTheme.success.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.local_shipping_rounded, size: 18, color: AppTheme.primary),
+                              child: const Icon(Icons.store_rounded, size: 18, color: AppTheme.success),
                             ),
                             const SizedBox(width: 12),
-                            Expanded(
+                            const Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('${_selectedShipping!['courier']}',
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                                if ((_selectedShipping!['etd'] as String?)?.isNotEmpty == true)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Text('Estimasi: ${_selectedShipping!['etd']}',
-                                        style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                                  ),
+                                Text('Ambil Sendiri di Toko',
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.success)),
+                                SizedBox(height: 2),
+                                Text('Ongkos kirim tidak dikenakan',
+                                    style: TextStyle(fontSize: 11, color: AppTheme.textHint)),
                               ]),
                             ),
-                            Text(AppFormatters.currency(_selectedShipping!['cost']),
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primary)),
+                            const Text('Rp 0',
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.success)),
                           ]),
-                        )
-                      else
-                        const Text('Menunggu data alamat...', style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
+                        ),
                     ]),
                   ),
                   const SizedBox(height: 12),
@@ -761,9 +884,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ]),
                 const SizedBox(height: 6),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('Ongkir', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-                  Text(_shippingCost > 0 ? AppFormatters.currency(_shippingCost) : '-',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Text('Ongkir', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                    if (_selfPickup) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppTheme.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text('Ambil di Toko', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.success)),
+                      ),
+                    ],
+                  ]),
+                  Text(
+                    _selfPickup ? 'GRATIS' : (_shippingCost > 0 ? AppFormatters.currency(_shippingCost) : '-'),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: _selfPickup ? FontWeight.w700 : FontWeight.w500,
+                      color: _selfPickup ? AppTheme.success : null,
+                    ),
+                  ),
                 ]),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),

@@ -30,6 +30,7 @@ dependencies:
     flutter_widget_from_html_core: ^0.15.2
     share_plus: ^10.1.4
     flutter_native_splash: ^2.4.7
+    flutter_uxcam: ^2.7.11
 
 dev_dependencies:
     flutter_test:
